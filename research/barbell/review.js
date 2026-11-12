@@ -1,0 +1,29 @@
+const $=id=>document.getElementById(id), data=window.DATASET;
+let saved={};try{saved=JSON.parse(localStorage.getItem('motiontrace-shaft-v1')||'{}')}catch{}
+const records=data.tasks.map(t=>({...t,...(saved[t.id]||{}),shaft_segments:structuredClone(saved[t.id]?.shaft_segments||t.shaft_segments)}));
+const order=new Map((data.review_queue||[]).map((id,i)=>[id,i]));records.sort((a,b)=>(order.get(a.id)??9999)-(order.get(b.id)??9999));
+let index=0,mode='shaft',pending=null;
+function persist(){try{localStorage.setItem('motiontrace-shaft-v1',JSON.stringify(Object.fromEntries(records.map(r=>[r.id,r]))));$('message').textContent='Zapisano lokalnie. Wyeksportuj JSON po zakończeniu.'}catch{$('message').textContent='Przeglądarka nie pozwala zapisać lokalnie — użyj Eksport JSON.'}}
+function dirty(){records[index].review_status='edited';persist();status()}
+function status(){const r=records[index];$('draft').textContent=r.review_status==='approved'?'Zatwierdzona':r.review_status==='draft'?'Propozycja oznaczenia — sprawdź dokładność':r.review_status==='edited'?'Edytowana — zatwierdź po sprawdzeniu':'Niezweryfikowana';$('progress').textContent=`Zatwierdzono ${records.filter(r=>r.review_status==='approved').length} / ${records.length}`}
+function render(){const r=records[index];$('clip').pause();$('clip').hidden=true;$('contextPreview').hidden=true;$('videoError').textContent='';pending=null;
+$('name').textContent=`${r.video_name} · ${r.timestamp.toFixed(3)} s`;$('count').textContent=`${index+1} / ${records.length}`;$('jump').value=index;
+$('work').style.setProperty('--ratio',`${r.width}/${r.height}`);$('work').style.height='76vh';$('work').style.width=`min(100%, ${76*r.width/r.height}vh)`;
+$('photo').src=r.image;$('draw').setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);$('bar').value=r.bar_state;$('event').value=r.event;$('notes').value=r.notes||'';draw();status()}
+function draw(){const r=records[index],svg=$('draw');svg.replaceChildren();function node(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,v);svg.append(el)}
+for(const [x1,y1,x2,y2]of r.shaft_segments)node('line',{x1,y1,x2,y2,stroke:'#42efaa','stroke-width':4});
+if(r.athlete_box){const[x1,y1,x2,y2]=r.athlete_box;node('rect',{x:Math.min(x1,x2),y:Math.min(y1,y2),width:Math.abs(x2-x1),height:Math.abs(y2-y1),fill:'none',stroke:'#78baff','stroke-width':3})}
+if(pending)node('circle',{cx:pending[0],cy:pending[1],r:6,fill:'#ffc45a'})}
+$('draw').onclick=e=>{const r=records[index],rect=$('draw').getBoundingClientRect();const p=[Math.round((e.clientX-rect.left)/rect.width*r.width),Math.round((e.clientY-rect.top)/rect.height*r.height)];if(!pending)pending=p;else{if(mode==='shaft')r.shaft_segments.push([...pending,...p]);else r.athlete_box=[...pending,...p];pending=null;dirty()}draw()};
+$('shaft').onclick=()=>{mode='shaft';pending=null;$('shaft').classList.add('active');$('athlete').classList.remove('active');draw()};
+$('athlete').onclick=()=>{mode='athlete';pending=null;$('athlete').classList.add('active');$('shaft').classList.remove('active');draw()};
+$('undo').onclick=()=>{if(pending)pending=null;else{if(mode==='shaft')records[index].shaft_segments.pop();else records[index].athlete_box=null;dirty()}draw()};
+$('reset').onclick=()=>{records[index].shaft_segments=[];records[index].athlete_box=null;pending=null;dirty();draw()};
+$('prev').onclick=()=>{index=Math.max(0,index-1);render()};$('next').onclick=()=>{index=Math.min(records.length-1,index+1);render()};
+records.forEach((r,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${r.video_name} · ${r.timestamp.toFixed(2)}s`;$('jump').append(o)});$('jump').onchange=()=>{index=Number($('jump').value);render()};
+for(const[id,field]of [['bar','bar_state'],['event','event'],['notes','notes']])$(id).onchange=()=>{records[index][field]=$(id).value;dirty()};
+$('approve').onclick=()=>{if(pending){$('message').textContent='Dokończ lub cofnij zaznaczany odcinek.';return}records[index].review_status='approved';persist();status()};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify({schema:1,annotation_coordinates:data.annotation_coordinates,videos:data.videos,tasks:records},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='motiontrace-shaft-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('import').onchange=async e=>{try{const input=JSON.parse(await e.target.files[0].text());if(input.schema!==1||!Array.isArray(input.tasks))throw Error('Nieprawidłowy format');const allowed=['unknown','visible_stationary','visible_moving','occluded','absent'];for(const t of input.tasks){const r=records.find(r=>r.id===t.id);if(!r)continue;if(!Array.isArray(t.shaft_segments)||t.shaft_segments.some(s=>!Array.isArray(s)||s.length!==4||s.some((v,i)=>!Number.isFinite(v)||v<0||v>(i%2?r.height:r.width))))throw Error('Nieprawidłowe współrzędne');if(!allowed.includes(t.bar_state))throw Error('Nieprawidłowy stan');Object.assign(r,{shaft_segments:t.shaft_segments,athlete_box:t.athlete_box,bar_state:t.bar_state,event:t.event,notes:t.notes,review_status:t.review_status})}persist();render()}catch(err){$('message').textContent=`Błąd importu: ${err.message}`}};
+$('context').onclick=()=>{const r=records[index],video=data.videos.find(v=>v.id===r.video_id);if(r.context_image){$('contextPreview').src=r.context_image;$('contextPreview').hidden=false;$('videoError').textContent='Podgląd ±1 s, zapętlony w 10 FPS. Do oznaczania używaj głównej klatki.';return}$('clip').hidden=false;$('clip').src='../../'+video.path;$('clip').onloadedmetadata=()=>{$('clip').currentTime=Math.max(0,r.timestamp-1)};$('clip').onerror=()=>{$('videoError').textContent='Brak obsługi kodeka w przeglądarce. Otwórz oryginalny film w MotionTrace i przejdź do podanego czasu.'}};
+render();

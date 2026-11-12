@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations><Platform Name="x64" /></Configurations>
+  <Folder Name="/Application/">
+    <Project Path="win_app/motion_trace_win/motion_trace_win/motion_trace_win/motion_trace_win.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Core/">
+    <Project Path="src/MotionTrace.Core/MotionTrace.Core.csproj" />
+    <Project Path="src/MotionTrace.Infrastructure/MotionTrace.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Tests/"><Project Path="tests/MotionTrace.Tests/MotionTrace.Tests.csproj" /></Folder>
+</Solution>

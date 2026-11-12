@@ -1,0 +1,9 @@
+# Windows CPython 3.11. Install CUDA wheels separately as setup-vision.ps1 does.
+torch==2.8.0+cu126
+torchvision==0.23.0+cu126
+transformers==4.57.6
+numpy==1.26.4
+opencv-python==4.11.0.86
+av==16.0.1
+Pillow==11.3.0
+scipy==1.15.3

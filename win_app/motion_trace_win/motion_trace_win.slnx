@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="motion_trace_win/motion_trace_win/motion_trace_win.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>

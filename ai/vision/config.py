@@ -1,0 +1,40 @@
+"""Versioned inference policy; these settings participate in the cache identity."""
+
+PROMPTS = {
+    "Squat": ["a person performing a barbell back squat", "a person squatting with a barbell on their shoulders"],
+    "BenchPress": ["a person lying on a bench performing a barbell bench press", "a person bench pressing a barbell"],
+    "Deadlift": ["a person performing a barbell deadlift from the floor", "a person lifting a barbell from the floor to their hips"],
+    "Snatch": ["a person performing an Olympic barbell snatch", "a person lifting a barbell from the floor overhead in one movement"],
+    "CleanAndJerk": ["a person performing an Olympic clean and jerk", "a person lifting a barbell to their shoulders then jerking it overhead"],
+    "Unknown": ["a person standing still in a gym", "a person walking in a gym", "a person spotting another weightlifter", "a person preparing to lift weights", "a person resting between exercises"],
+}
+
+POLICY = {
+    "promptVersion": "exercise-prompts-1",
+    "prompts": PROMPTS,
+    "windowSeconds": 4.0,
+    "classificationScope": "verified-object-owners",
+    "classificationMinScore": 0.40,
+    "classificationMinMargin": 0.12,
+    "detectionPrompt": "a barbell. a weight plate.",
+    "detectionIntervalSeconds": 2.0,
+    "boxThreshold": 0.25,
+    "textThreshold": 0.20,
+    "associationMinScore": 0.50,
+    "associationMinMargin": 0.12,
+    "ownershipMethod": "geometry-global-proof-local-fallback-4",
+    "ownershipWindowSeconds": 8.0,
+    "ownershipMinMotionCorrelation": 0.65,
+    "ownershipMinMotionSamples": 3,
+    "ownershipLocalMinMotionSamples": 4,
+    "measurementMethod": "manual-lk-or-mask-proxy-1",
+    "trackingMethod": "sam2-streaming-memory-1",
+    "ownerReacquisitionSeconds": 2.0,
+    "maskValidation": "confident-inner-torso-contamination-1",
+    "torsoGuardJointConfidence": 0.50,
+    "torsoGuardInteriorScale": 0.65,
+    "torsoGuardCoverageThreshold": 0.75,
+    "torsoGuardMinimumAreaPixels": 64,
+    "coordinateSystem": "original-rotation-corrected-pixels",
+    "samPrecision": "float32",
+}

@@ -1,0 +1,51 @@
+# Build outputs and local tools
+**/bin/
+**/obj/
+**/.vs/
+**/__pycache__/
+*.py[cod]
+*.user
+*.suo
+*.cache
+.vscode/
+.idea/
+.codex/
+.agents/
+.claude/
+**/AGENTS.md
+**/CLAUDE.md
+**/SKILL.md
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Runtime data, trained weights and recordings
+/artifacts/
+/output/
+/.models/
+/videos/
+/unused/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.log
+
+# Local research datasets and generated evaluation results
+/research/**/*.json
+/research/**/*.jsonl
+/research/**/results.txt
+/research/**/movement-results.txt
+
+/research/**/*results.csv
